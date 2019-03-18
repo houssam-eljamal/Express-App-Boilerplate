@@ -62,6 +62,7 @@ app.use(
     })
 );
 // Passport MiddleWare
+// Have to come after the Express session MiddleWare
 app.use(passport.initialize());
 app.use(passport.session());
 // Flash MiddleWare

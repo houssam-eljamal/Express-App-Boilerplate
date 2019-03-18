@@ -1,38 +1,50 @@
-const LocalStrategy  = require('passport-local').Strategy;
+//----------------------------------------------- Require Dependencies
+const LocalStrategy = require('passport-local').Strategy;
 const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 
-// Load user model
+//----------------------------------------------- Load user model
 const User = mongoose.model('users');
 
-module.exports = function(passport){
-  passport.use(new LocalStrategy({usernameField: 'email'}, (email, password, done) => {
+//----------------------------------------------- Export Strategy
+module.exports = function (passport) {
+  passport.use(new LocalStrategy({
+    // The usernameField is only required if we are using email as username
+    usernameField: 'email'
+  }, (email, password, done) => {
     // Match user
     User.findOne({
-      email:email
+      email: email
     }).then(user => {
-      if(!user){
-        return done(null, false, {message: 'No User Found'});
-      } 
+      // If no user found
+      if (!user) {
+        return done(null, false, {
+          message: 'User Not Found'
+        });
+      }
 
+      // If user is found
       // Match password
       bcrypt.compare(password, user.password, (err, isMatch) => {
-        if(err) throw err;
-        if(isMatch){
+        if (err) throw err;
+        if (isMatch) {
           return done(null, user);
         } else {
-          return done(null, false, {message: 'Password Incorrect'});
+          return done(null, false, {
+            message: 'Password Incorrect'
+          });
         }
       })
     })
   }));
 
-  passport.serializeUser(function(user, done) {
+  // In order to support login sessions, Passport will serialize and deserialize user instances to and from the session.
+  passport.serializeUser(function (user, done) {
     done(null, user.id);
   });
-  
-  passport.deserializeUser(function(id, done) {
-    User.findById(id, function(err, user) {
+
+  passport.deserializeUser(function (id, done) {
+    User.findById(id, function (err, user) {
       done(err, user);
     });
   });
