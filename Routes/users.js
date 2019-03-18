@@ -4,7 +4,9 @@ const mongoose = require('mongoose');
 const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const router = express.Router();
-
+const {
+  ensureGuest
+} = require('../Helpers/ensureAuthenticated');
 //----------------------------------------------- Load User Model
 require('../Models/User');
 const User = mongoose.model('users');
@@ -12,7 +14,7 @@ const User = mongoose.model('users');
 //----------------------------------------------- Routes
 //----------------------------------------------- Login
 // User Login Route
-router.get('/login', (req, res) => {
+router.get('/login', ensureGuest, (req, res) => {
   res.render('users/login');
 });
 
@@ -27,7 +29,7 @@ router.post('/login', (req, res, next) => {
 
 //----------------------------------------------- Register
 // User Register Route
-router.get('/register', (req, res) => {
+router.get('/register', ensureGuest, (req, res) => {
   res.render('users/register');
 });
 
