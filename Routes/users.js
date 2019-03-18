@@ -5,18 +5,15 @@ const bcrypt = require('bcryptjs');
 const passport = require('passport');
 const router = express.Router();
 
-// Load User Model
+//----------------------------------------------- Load User Model
 require('../Models/User');
 const User = mongoose.model('users');
 
+//----------------------------------------------- Routes
+//----------------------------------------------- Login
 // User Login Route
 router.get('/login', (req, res) => {
   res.render('users/login');
-});
-
-// User Register Route
-router.get('/register', (req, res) => {
-  res.render('users/register');
 });
 
 // Login Form POST
@@ -28,41 +25,58 @@ router.post('/login', (req, res, next) => {
   })(req, res, next);
 });
 
+//----------------------------------------------- Register
+// User Register Route
+router.get('/register', (req, res) => {
+  res.render('users/register');
+});
+
 // Register Form POST
 router.post('/register', (req, res) => {
   let errors = [];
+  const {
+    name,
+    email,
+    password,
+    password2
+  } = req.body;
 
-  if (req.body.password != req.body.password2) {
+  if (!name || !email || !password || !password2) {
     errors.push({
-      text: 'Passwords do not match'
+      text: 'All Forms are Required'
+    })
+  }
+  if (password != password2) {
+    errors.push({
+      text: 'Passwords do not Match'
     });
   }
-  if (req.body.password.length < 4) {
+  if (password.length < 4) {
     errors.push({
       text: 'Password must be at least 4 characters'
     });
   }
   if (errors.length > 0) {
     res.render('users/register', {
-      errors: errors,
-      name: req.body.name,
-      email: req.body.email,
-      password: req.body.password,
-      password2: req.body.password2
+      errors,
+      name,
+      email,
+      password,
+      password2
     });
   } else {
     User.findOne({
-        email: req.body.email
+        email: email
       })
       .then(user => {
         if (user) {
-          req.flash('error_msg', 'Email already regsitered');
+          req.flash('error_msg', 'Email is already regsitered');
           res.redirect('/users/register');
         } else {
           const newUser = new User({
-            name: req.body.name,
-            email: req.body.email,
-            password: req.body.password
+            name: name,
+            email: email,
+            password: password
           });
           bcrypt.genSalt(10, (err, salt) => {
             bcrypt.hash(newUser.password, salt, (err, hash) => {
@@ -84,6 +98,7 @@ router.post('/register', (req, res) => {
   }
 });
 
+//----------------------------------------------- Logout
 // Logout User
 router.get('/logout', (req, res) => {
   req.logout();
